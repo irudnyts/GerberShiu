@@ -136,6 +136,10 @@ simulate_process <- function(u = 10,
 
         }
     }
+
+    if(jumps_number > max_jumps_number)
+        warning("max_jumps_number is achieved")
+
     return(list(
         process = process,
         jumps_p = jumps_p,
