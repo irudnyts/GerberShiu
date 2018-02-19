@@ -15,6 +15,11 @@ simulate_process <- function(u = 10,
 
                              max_jumps_number = 10000) {
 
+    # add n = 1 to all distribution parameters in order to generate only one r.v.
+    param_p[["n"]] <- 1
+    param_n1[["n"]] <- 1
+    param_n2[["n"]] <- 1
+
     # initialize iterator variable
     jumps_number <- 0
 
@@ -24,8 +29,15 @@ simulate_process <- function(u = 10,
     process[1, ] <- c(0, u)
 
     # function for adding negative jump to a process
-    add_jump_n <- function(jump_time, jump_value) {
+    add_jump_n <- function() {
+        jump_value <- ifelse(test = rbinom(n = 1, size = 1, prob = eps) == 1,
+                             yes = do.call(f_n2, param_n2),
+                             no = do.call(f_n1, param_n1))
+        jumps_n <<-  c(jumps_n, jump_value)
+
+        jump_time <- last(time_n)
         time_to_jump <- jump_time - process[nrow(process), 1]
+
         process <<- rbind(
             process,
             c(jump_time,
@@ -43,6 +55,9 @@ simulate_process <- function(u = 10,
 
     # function for adding positive jump to a process
     add_jump_p <- function(jump_time, jump_value) {
+        jump_value <- do.call(f_p, param_p)
+        jumps_p <<-  c(jumps_p, jump_value)
+        jump_time <- last(time_p)
         time_to_jump <- jump_time - process[nrow(process), 1]
         process <<- rbind(
             process,
@@ -62,22 +77,6 @@ simulate_process <- function(u = 10,
     # get last value of a process
     get_process_last_value <- function() process[nrow(process), 2]
 
-    # add n = 1 to all distribution parameters in order to generate only one r.v.
-    param_p[["n"]] <- 1
-    param_n1[["n"]] <- 1
-    param_n2[["n"]] <- 1
-
-    # function to generate positive jump
-    jump_size_p <- function() do.call(f_p, param_p)
-
-    # function to generate negative jump
-    jump_size_n <- function() {
-        ifelse(test = rbinom(n = 1, size = 1, prob = eps) == 1,
-               yes = do.call(f_n2, param_n2),
-               no = do.call(f_n1, param_n1))
-
-    }
-
     # get last element of a vector
     last <- function(x) x[length(x)]
 
@@ -94,8 +93,7 @@ simulate_process <- function(u = 10,
 
         if(last(time_p) > last(time_n)) {
 
-            jumps_n <-  c(jumps_n, jump_size_n())
-            add_jump_n(last(time_n), last(jumps_n))
+            add_jump_n()
 
             if(get_process_last_value() < 0) break
             if(jumps_number > max_jumps_number) break
@@ -105,8 +103,7 @@ simulate_process <- function(u = 10,
                 time_n <- c(time_n, last(time_n) + rexp(1, lambda_n))
                 if(last(time_p) < last(time_n)) break
 
-                jumps_n <-  c(jumps_n, jump_size_n())
-                add_jump_n(last(time_n), last(jumps_n))
+                add_jump_n()
 
                 if(get_process_last_value() < 0) break
 
@@ -119,16 +116,14 @@ simulate_process <- function(u = 10,
 
         } else {
 
-            jumps_p <-  c(jumps_p, jump_size_p())
-            add_jump_p(last(time_p), last(jumps_p))
+            add_jump_p()
 
             if(jumps_number > max_jumps_number) break
 
             repeat {
                 time_p <-  c(time_p, last(time_p) + rexp(1, lambda_p))
                 if(last(time_p) > last(time_n)) break
-                jumps_p <-  c(jumps_p, jump_size_p())
-                add_jump_p(last(time_p), last(jumps_p))
+                add_jump_p()
                 if(jumps_number > max_jumps_number) break
             }
 
