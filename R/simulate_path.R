@@ -1,8 +1,9 @@
+# max_jumps_number can be Inf
 simulate_process <- function(u, premiums, lambda1, lambda2,
-                             max_jumps_number = 100000,
-                             until_ruin = TRUE) {
+                             max_jumps_number = 10000) {
 
-    browser()
+
+    # browser()
 
     process <- matrix(NA, nrow = 1, ncol = 2)
     colnames(process) <- c("time", "X")
@@ -21,6 +22,8 @@ simulate_process <- function(u, premiums, lambda1, lambda2,
             c(process[nrow(process), 1],
               process[nrow(process), 2] - jump_value)
         )
+
+        jumps_number <<- jumps_number + 1
     }
 
     add_pjump <- function(jump_time, jump_value) {
@@ -36,6 +39,8 @@ simulate_process <- function(u, premiums, lambda1, lambda2,
             c(process[nrow(process), 1],
               process[nrow(process), 2] + jump_value)
         )
+
+        jumps_number <<- jumps_number + 1
     }
 
     get_process_last <- function() process[nrow(process), 2]
@@ -56,27 +61,47 @@ simulate_process <- function(u, premiums, lambda1, lambda2,
         if(last(p_time) > last(n_time)) {
 
             add_njump(last(n_time), 1)
-            if(get_process_last() < 0) break
+            if(get_process_last() < 0) return(process)
+            if(jumps_number > max_jumps_number) {
+                warning(paste0("max_jumps_number attained.",
+                        "Process stoped before being negative."))
+                browser()
+                return(process)
+            }
 
             repeat {
                 n_time <-  c(n_time, last(n_time) + rexp(1, lambda2))
                 if(last(p_time) < last(n_time)) break
                 add_njump(last(n_time), 1)
-                if(get_process_last() < 0) break
+                if(get_process_last() < 0) return(process)
+                if(jumps_number > max_jumps_number) {
+                    warning(paste0("max_jumps_number attained.",
+                                   "Process stoped before being negative."))
+                    browser()
+                    return(process)
+                }
             }
-
-            if(get_process_last() < 0) break
-            # add_pjump(last(p_time), 1)
-            # p_time <-  c(p_time, last(p_time) + rexp(1, lambda1))
 
         } else {
 
             add_pjump(last(p_time), 1)
+            if(jumps_number > max_jumps_number) {
+                warning(paste0("max_jumps_number attained.",
+                               "Process stoped before being negative."))
+                browser()
+                return(process)
+            }
 
             repeat {
                 p_time <-  c(p_time, last(p_time) + rexp(1, lambda1))
                 if(last(p_time) > last(n_time)) break
                 add_pjump(last(p_time), 1)
+                if(jumps_number > max_jumps_number) {
+                    warning(paste0("max_jumps_number attained.",
+                                   "Process stoped before being negative."))
+                    browser()
+                    return(process)
+                }
             }
 
         }
@@ -84,7 +109,40 @@ simulate_process <- function(u, premiums, lambda1, lambda2,
     return(process)
 }
 
-simulate_process_until_ruin(u = 10, premiums = 1, lambda1 = 1, lambda2 = 1)
+set.seed(1)
+prc <- simulate_process(u = 10, premiums = 1, lambda1 = 1, lambda2 = 1)
+prc <- simulate_process(u = 2, premiums = 1, lambda1 = 1, lambda2 = 1)
+
+
+# tests
+plot(sapply(1:length(n_time), function(x) mean(diff(n_time[1:x]))), type = "l")
+length(n_time) - length(p_time)
+
+
+set.seed(1)
+prc <- simulate_process(u = 7, premiums = 1, lambda1 = 1, lambda2 = 2)
+plot(prc, type = "l")
+plot(prc[1:100, ], type = "l")
+
+
+# fast matrix append without creating new matrix
+# a <- matrix(1:4, ncol = 2, byrow = TRUE)
+# a <- t(a)
+# a[c(5, 6)] <- c(5, 6)
+# matrix(a, ncol = 2, byrow = TRUE)
+
+# how break works
+# i <- 1
+# while(i < 10) {
+#     j <- 1
+#     repeat {
+#         j <- j + 1
+#         if(j > 7) break
+#     }
+#     i <- i + 1
+# }
+
+
 
 
 # add_njump <- function(jump_time, jump_value) {
