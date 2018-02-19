@@ -1,9 +1,14 @@
 set.seed(1)
-prc <- simulate_process(u = 10, premiums = 1, l1 = 1, l2 = 1)
-prc <- simulate_process(u = 2, premiums = 1, l1 = 1, l2 = 1)
+prc <- simulate_process(initial_capital = 10,
+                        premium_rate = 1,
+                        capital_injections_rate = 1,
+                        claims_rate = 1)
 
+prc <- simulate_process(initial_capital = 10,
+                        premium_rate = 1,
+                        capital_injections_rate = 1,
+                        claims_rate = 1)
 
-# tests
 plot(sapply(1:length(n_time), function(x) mean(diff(n_time[1:x]))), type = "l")
 length(n_time) - length(p_time)
 

@@ -1,30 +1,28 @@
 # max_jumps_number can be Inf
-simulate_process <- function(initial_capital = 10,
-                             premium_rate = 1,
-                             capital_injections_rate = 1,
-                             capital_injections_distribution = rexp,
-                             capital_injections_distribution_parameters = list(rate = 1),
-                             claims_rate = 1,
-                             claims_ht_distribution = rexp,
-                             claims_ht_distribution_parameters = list(rate = 1),
-                             claims_pt_distribution = rpareto,
-                             claims_pt_distribution_parameters = list(shape = 1, scale = 1),
-                             mixing_parameter = 0.5,
+simulate_process <- function(u = 10,
+                             pr = 1,
+                             lambda_p = 1,
+                             f_p = rexp,
+                             param_p = list(rate = 1),
+
+                             lamda_n = 1,
+                             f_n1 = rexp,
+                             param_n1 = list(rate = 1),
+                             f_n2 = rpareto,
+                             param_n2 = list(shape = 1, scale = 1),
+                             eps = 0.5,
                              max_jumps_number = 10000) {
-    # rename arguments
-    u <- initial_capital
-    pr <- premium_rate
-    l1 <- capital_injections_rate
-    l2 <- claims_rate
+
+    # initialize iterator variable
+    jumps_number <- 0
 
     # initialize process
     process <- matrix(NA, nrow = 1, ncol = 2)
     colnames(process) <- c("time", "X")
     process[1, ] <- c(0, u)
 
-
-    # adding negative jump to a process
-    add_njump <- function(jump_time, jump_value) {
+    # function for adding negative jump to a process
+    add_jump_n <- function(jump_time, jump_value) {
         time_to_jump <- jump_time - process[nrow(process), 1]
         process <<- rbind(
             process,
@@ -41,8 +39,8 @@ simulate_process <- function(initial_capital = 10,
         jumps_number <<- jumps_number + 1
     }
 
-    # adding positive jump to a process
-    add_pjump <- function(jump_time, jump_value) {
+    # function for adding positive jump to a process
+    add_jump_p <- function(jump_time, jump_value) {
         time_to_jump <- jump_time - process[nrow(process), 1]
         process <<- rbind(
             process,
@@ -60,26 +58,45 @@ simulate_process <- function(initial_capital = 10,
     }
 
     # get last value of a process
-    get_process_last <- function() process[nrow(process), 2]
+    get_last_process_value <- function() process[nrow(process), 2]
+
+    # add n = 1 to all distribution parameters in order to generate only one r.v.
+    param_p[["n"]] <- 1
+    param_n1[["n"]] <- 1
+    param_n2[["n"]] <- 1
+
+    # function to generate positive jump
+    jump_size_p <- function() do.call(f_p, param_p)
+
+    # function to generate negative jump
+    jump_size_n <- function() {
+        ifelse(test = runif(1, eps) == 1,
+               yes = do.call(f_n1, param_n1),
+               no = do.call(f_n2, param_n2))
+    }
 
     # get last element of a process
     last <- function(x) x[length(x)]
 
-    p_time <- numeric() # time of positive jumps
-    n_time <- numeric() # time of negative jumps
+    time_n <- numeric() # time of negative jumps
+    time_p <- numeric() # time of positive jumps
 
-    p_time[1] <-  rexp(1, l1)
-    n_time[1] <-  rexp(1, l2)
+    jumps_n <- numeric() # negative jumps' sizes
+    jumps_p <- numeric() # positive jumps' sizes
 
+    time_n[1] <-  rexp(1, lambda_n)
+    time_p[1] <-  rexp(1, lambda_p)
 
-    jumps_number <- 0
 
     repeat{
 
-        if(last(p_time) > last(n_time)) {
+        if(last(time_p) > last(time_n)) {
 
-            add_njump(last(n_time), 1)
+            jumps_n <-  c(jumps_n, jump_size_n())
+            add_njump(last(time_n), last(jumps_n))
+
             if(get_process_last() < 0) return(process)
+
             if(jumps_number > max_jumps_number) {
                 warning(paste0("max_jumps_number attained.",
                         "Process stoped before being negative."))
@@ -88,10 +105,16 @@ simulate_process <- function(initial_capital = 10,
             }
 
             repeat {
-                n_time <-  c(n_time, last(n_time) + rexp(1, l2))
-                if(last(p_time) < last(n_time)) break
-                add_njump(last(n_time), 1)
+
+                time_n <-  c(time_n, last(time_n) + rexp(1, n_lambda))
+
+                if(last(time_p) < last(time_n)) break
+
+                jumps_n <-  c(jumps_n, jump_size_n())
+                add_njump(last(time_n), last(jumps_n))
+
                 if(get_process_last() < 0) return(process)
+
                 if(jumps_number > max_jumps_number) {
                     warning(paste0("max_jumps_number attained.",
                                    "Process stoped before being negative."))
@@ -102,7 +125,9 @@ simulate_process <- function(initial_capital = 10,
 
         } else {
 
-            add_pjump(last(p_time), 1)
+            jumps_p <-  c(jumps_p, jump_size_p())
+            add_pjump(last(time_p), last(jumps_p))
+
             if(jumps_number > max_jumps_number) {
                 warning(paste0("max_jumps_number attained.",
                                "Process stoped before being negative."))
@@ -111,9 +136,10 @@ simulate_process <- function(initial_capital = 10,
             }
 
             repeat {
-                p_time <-  c(p_time, last(p_time) + rexp(1, l1))
-                if(last(p_time) > last(n_time)) break
-                add_pjump(last(p_time), 1)
+                time_p <-  c(time_p, last(time_p) + rexp(1, p_lambda))
+                if(last(time_p) > last(time_n)) break
+                jumps_p <-  c(jumps_p, jump_size_p())
+                add_pjump(last(time_p), last(jumps_p))
                 if(jumps_number > max_jumps_number) {
                     warning(paste0("max_jumps_number attained.",
                                    "Process stoped before being negative."))
@@ -126,3 +152,18 @@ simulate_process <- function(initial_capital = 10,
     }
     # return(process)
 }
+
+
+# process <- function(process, positive_jumps_time, positive_jumps_sizes,
+#                     negative_jumps_time, negative_jumps_sizes) {
+#     rval <- list(process = process,
+#                  positive_jumps_time = positive_jumps_time,
+#                  positive_jumps_sizes = positive_jumps_sizes,
+#                  negative_jumps_time = negative_jumps_time,
+#                  negative_jumps_sizes = negative_jumps_sizes)
+#     class(rval) <- "process"
+# }
+
+
+
+
