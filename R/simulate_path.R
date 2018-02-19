@@ -1,16 +1,18 @@
 # max_jumps_number can be Inf
 simulate_process <- function(u = 10,
                              pr = 1,
+
                              lambda_p = 1,
                              f_p = rexp,
                              param_p = list(rate = 1),
 
-                             lamda_n = 1,
+                             lambda_n = 1,
                              f_n1 = rexp,
                              param_n1 = list(rate = 1),
                              f_n2 = rpareto,
                              param_n2 = list(shape = 1, scale = 1),
-                             eps = 0.5,
+                             eps = 0.1,
+
                              max_jumps_number = 10000) {
 
     # initialize iterator variable
@@ -58,7 +60,7 @@ simulate_process <- function(u = 10,
     }
 
     # get last value of a process
-    get_last_process_value <- function() process[nrow(process), 2]
+    get_process_last_value <- function() process[nrow(process), 2]
 
     # add n = 1 to all distribution parameters in order to generate only one r.v.
     param_p[["n"]] <- 1
@@ -70,87 +72,77 @@ simulate_process <- function(u = 10,
 
     # function to generate negative jump
     jump_size_n <- function() {
-        ifelse(test = runif(1, eps) == 1,
-               yes = do.call(f_n1, param_n1),
-               no = do.call(f_n2, param_n2))
+        ifelse(test = rbinom(n = 1, size = 1, prob = eps) == 1,
+               yes = do.call(f_n2, param_n2),
+               no = do.call(f_n1, param_n1))
+
     }
 
-    # get last element of a process
+    # get last element of a vector
     last <- function(x) x[length(x)]
-
-    time_n <- numeric() # time of negative jumps
-    time_p <- numeric() # time of positive jumps
 
     jumps_n <- numeric() # negative jumps' sizes
     jumps_p <- numeric() # positive jumps' sizes
 
-    time_n[1] <-  rexp(1, lambda_n)
-    time_p[1] <-  rexp(1, lambda_p)
+    time_n <- numeric() # time of negative jumps
+    time_p <- numeric() # time of positive jumps
 
+    time_n[1] <- rexp(1, lambda_n)
+    time_p[1] <- rexp(1, lambda_p)
 
     repeat{
 
         if(last(time_p) > last(time_n)) {
 
             jumps_n <-  c(jumps_n, jump_size_n())
-            add_njump(last(time_n), last(jumps_n))
+            add_jump_n(last(time_n), last(jumps_n))
 
-            if(get_process_last() < 0) return(process)
-
-            if(jumps_number > max_jumps_number) {
-                warning(paste0("max_jumps_number attained.",
-                        "Process stoped before being negative."))
-                browser()
-                return(process)
-            }
+            if(get_process_last_value() < 0) break
+            if(jumps_number > max_jumps_number) break
 
             repeat {
 
-                time_n <-  c(time_n, last(time_n) + rexp(1, n_lambda))
-
+                time_n <- c(time_n, last(time_n) + rexp(1, lambda_n))
                 if(last(time_p) < last(time_n)) break
 
                 jumps_n <-  c(jumps_n, jump_size_n())
-                add_njump(last(time_n), last(jumps_n))
+                add_jump_n(last(time_n), last(jumps_n))
 
-                if(get_process_last() < 0) return(process)
+                if(get_process_last_value() < 0) break
 
-                if(jumps_number > max_jumps_number) {
-                    warning(paste0("max_jumps_number attained.",
-                                   "Process stoped before being negative."))
-                    browser()
-                    return(process)
-                }
+                if(jumps_number > max_jumps_number) break
             }
+
+            if(get_process_last_value() < 0) break
+            if(jumps_number > max_jumps_number) break
+
 
         } else {
 
             jumps_p <-  c(jumps_p, jump_size_p())
-            add_pjump(last(time_p), last(jumps_p))
+            add_jump_p(last(time_p), last(jumps_p))
 
-            if(jumps_number > max_jumps_number) {
-                warning(paste0("max_jumps_number attained.",
-                               "Process stoped before being negative."))
-                browser()
-                return(process)
-            }
+            if(jumps_number > max_jumps_number) break
 
             repeat {
-                time_p <-  c(time_p, last(time_p) + rexp(1, p_lambda))
+                time_p <-  c(time_p, last(time_p) + rexp(1, lambda_p))
                 if(last(time_p) > last(time_n)) break
                 jumps_p <-  c(jumps_p, jump_size_p())
-                add_pjump(last(time_p), last(jumps_p))
-                if(jumps_number > max_jumps_number) {
-                    warning(paste0("max_jumps_number attained.",
-                                   "Process stoped before being negative."))
-                    browser()
-                    return(process)
-                }
+                add_jump_p(last(time_p), last(jumps_p))
+                if(jumps_number > max_jumps_number) break
             }
+
+            if(jumps_number > max_jumps_number) break
 
         }
     }
-    # return(process)
+    return(list(
+        process = process,
+        jumps_p = jumps_p,
+        time_p = time_p,
+        jumps_n = jumps_n,
+        time_n = time_n
+    ))
 }
 
 

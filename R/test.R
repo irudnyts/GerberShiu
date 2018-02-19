@@ -1,4 +1,10 @@
 set.seed(1)
+
+
+prc <- simulate_process(lambda_p = 1, lambda_n = 1)
+
+
+
 prc <- simulate_process(initial_capital = 10,
                         premium_rate = 1,
                         capital_injections_rate = 1,
