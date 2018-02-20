@@ -1,4 +1,5 @@
 # max_jumps_number can be Inf
+#' @export
 simulate_process <- function(u = 10,
                              pr = 1,
                              lambda_p = 1,
@@ -157,7 +158,7 @@ simulate_process <- function(u = 10,
 #     class(rval) <- "process"
 # }
 
-
+#' @export
 plot.process <- function(prc) {
     plot(prc$path, type = "l")
 
