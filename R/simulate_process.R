@@ -135,13 +135,17 @@ simulate_process <- function(u = 10,
     if(jumps_number > max_jumps_number)
         warning("max_jumps_number is achieved")
 
-    return(list(
+    rval <- list(
         process = process,
         jumps_p = jumps_p,
         time_p = time_p,
         jumps_n = jumps_n,
         time_n = time_n
-    ))
+    )
+
+    class(rval) <- "process"
+
+    return(rval)
 }
 
 
@@ -156,5 +160,7 @@ simulate_process <- function(u = 10,
 # }
 
 
+plot.process <- function(prc) {
+    plot(prc$process, type = "l")
 
-
+}
