@@ -1,21 +1,19 @@
 # max_jumps_number can be Inf
 simulate_process <- function(u = 10,
                              pr = 1,
-
                              lambda_p = 1,
                              f_p = rexp,
                              param_p = list(rate = 1),
-
                              lambda_n = 1,
                              f_n1 = rexp,
                              param_n1 = list(rate = 1 / 2),
                              f_n2 = actuar::rpareto1,
                              param_n2 = list(shape = 3 / 2, min = 2 / 3),
                              eps = 0.1,
-
                              max_jumps_number = 1000000) {
 
-    # add n = 1 to all distribution parameters in order to generate only one r.v.
+    # add n = 1 to all distributions parameters in order to generate only
+    # one r.v.
     param_p[["n"]] <- 1
     param_n1[["n"]] <- 1
     param_n2[["n"]] <- 1
@@ -24,11 +22,11 @@ simulate_process <- function(u = 10,
     jumps_number <- 0
 
     # initialize process
-    process <- matrix(NA, nrow = 1, ncol = 2)
-    colnames(process) <- c("time", "X")
-    process[1, ] <- c(0, u)
+    path <- matrix(NA, nrow = 1, ncol = 2)
+    colnames(path) <- c("time", "X")
+    path[1, ] <- c(0, u)
 
-    # function for adding negative jump to a process
+    # function for adding negative jump to a path
     add_jump_n <- function() {
         jump_value <- ifelse(test = rbinom(n = 1, size = 1, prob = eps) == 1,
                              yes = do.call(f_n2, param_n2),
@@ -36,46 +34,46 @@ simulate_process <- function(u = 10,
         jumps_n <<-  c(jumps_n, jump_value)
 
         jump_time <- last(time_n)
-        time_to_jump <- jump_time - process[nrow(process), 1]
+        time_to_jump <- jump_time - path[nrow(path), 1]
 
-        process <<- rbind(
-            process,
+        path <<- rbind(
+            path,
             c(jump_time,
-              process[nrow(process), 2] + time_to_jump * pr)
+              path[nrow(path), 2] + time_to_jump * pr)
         )
 
-        process <<- rbind(
-            process,
-            c(process[nrow(process), 1],
-              process[nrow(process), 2] - jump_value)
+        path <<- rbind(
+            path,
+            c(path[nrow(path), 1],
+              path[nrow(path), 2] - jump_value)
         )
 
         jumps_number <<- jumps_number + 1
     }
 
-    # function for adding positive jump to a process
+    # function for adding positive jump to a path
     add_jump_p <- function(jump_time, jump_value) {
         jump_value <- do.call(f_p, param_p)
         jumps_p <<-  c(jumps_p, jump_value)
         jump_time <- last(time_p)
-        time_to_jump <- jump_time - process[nrow(process), 1]
-        process <<- rbind(
-            process,
+        time_to_jump <- jump_time - path[nrow(path), 1]
+        path <<- rbind(
+            path,
             c(jump_time,
-              process[nrow(process), 2] + time_to_jump * pr)
+              path[nrow(path), 2] + time_to_jump * pr)
         )
 
-        process <<- rbind(
-            process,
-            c(process[nrow(process), 1],
-              process[nrow(process), 2] + jump_value)
+        path <<- rbind(
+            path,
+            c(path[nrow(path), 1],
+              path[nrow(path), 2] + jump_value)
         )
 
         jumps_number <<- jumps_number + 1
     }
 
-    # get last value of a process
-    get_process_last_value <- function() process[nrow(process), 2]
+    # get last value of a path
+    get_path_last_value <- function() path[nrow(path), 2]
 
     # get last element of a vector
     last <- function(x) x[length(x)]
@@ -95,7 +93,7 @@ simulate_process <- function(u = 10,
 
             add_jump_n()
 
-            if(get_process_last_value() < 0) break
+            if(get_path_last_value() < 0) break
             if(jumps_number > max_jumps_number) break
 
             repeat {
@@ -105,12 +103,12 @@ simulate_process <- function(u = 10,
 
                 add_jump_n()
 
-                if(get_process_last_value() < 0) break
+                if(get_path_last_value() < 0) break
 
                 if(jumps_number > max_jumps_number) break
             }
 
-            if(get_process_last_value() < 0) break
+            if(get_path_last_value() < 0) break
             if(jumps_number > max_jumps_number) break
 
 
@@ -136,7 +134,7 @@ simulate_process <- function(u = 10,
         warning("max_jumps_number is achieved")
 
     rval <- list(
-        process = process,
+        path = path,
         jumps_p = jumps_p,
         time_p = time_p,
         jumps_n = jumps_n,
@@ -161,6 +159,6 @@ simulate_process <- function(u = 10,
 
 
 plot.process <- function(prc) {
-    plot(prc$process, type = "l")
+    plot(prc$path, type = "l")
 
 }
