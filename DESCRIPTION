@@ -6,7 +6,7 @@ Date: 2018-02-16
 Authors@R:
     person("Iegor", "Rudnytskyi", , "iegor.rudnytskyi@gmail.com", c("aut", "cre"))
 Description: Simulates a Levy process and estimates the value of Gerber-Shiu
-    function
+    function by using Monte-Carlo method. 
 License: GPL-3
 LazyData: TRUE
 URL: http://github.com/irudnyts/GerberShiu
@@ -14,7 +14,8 @@ BugReports: http://github.com/irudnyts/GerberShiu/issues
 Depends:
     R (>= 3.4.3)
 Imports:
-    actuar(>= 2.3.0)
+    actuar(>= 2.3.0),
+    pbapply(>=1.3-4)
 Encoding: UTF-8
 Suggests: testthat
 RoxygenNote: 6.0.1

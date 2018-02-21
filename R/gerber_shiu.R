@@ -1,18 +1,23 @@
 #' @export
-gerber_shiu <- function(u = 10,
-                        q = 1,
+gerber_shiu <- function(q = 1,
                         w = function(x, y) x + y,
-                        pr = 1,
-                        lambda_p = 1,
-                        f_p = rexp,
-                        param_p = list(rate = 1),
-                        lambda_n = 1,
-                        f_n1 = rexp,
-                        param_n1 = list(rate = 1 / 2),
-                        f_n2 = actuar::rpareto1,
-                        param_n2 = list(shape = 3 / 2, min = 2 / 3),
-                        eps = 0.1,
-                        max_jumps_number = 1000000,
-                        simulation_number = 100000) {
+                        simulation_number = 1000,
+                        ...) {
+    # browser()
+    gs <- function(prc) {
+        exp(-q * get_time_to_ruin(prc)) *
+            w(get_deficit_at_ruin(prc), get_surplus_prior_to_ruin(prc))
+    }
+
+    processes <- pbapply::pbreplicate(n = simulation_number,
+                                      expr = simulate_process(...),
+                                      simplify = FALSE)
+
+    gs_values <- sapply(processes, gs)
+    mean(gs_values)
+
+    # simulate 100000 process and add to a list
+    # estimate for these processes a value of Gerber Shiu function
+    # take an average of this values
 
 }

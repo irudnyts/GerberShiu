@@ -1,4 +1,5 @@
 # max_jumps_number can be Inf
+# set seed
 #' @export
 simulate_process <- function(u = 10,
                              pr = 1,
@@ -157,6 +158,21 @@ simulate_process <- function(u = 10,
 #                  negative_jumps_sizes = negative_jumps_sizes)
 #     class(rval) <- "process"
 # }
+
+get_time_to_ruin <- function(prc) {
+    # check is stoped due to ruin and not to max_iter is achieved
+    prc$path[nrow(prc$path), 1]
+}
+
+get_deficit_at_ruin <- function(prc) {
+    # check is stoped due to ruin and not to max_iter is achieved
+    -prc$path[nrow(prc$path), 2]
+}
+
+get_surplus_prior_to_ruin <- function(prc) {
+    # check is stoped due to ruin and not to max_iter is achieved
+    prc$path[nrow(prc$path) - 1, 2]
+}
 
 #' @export
 plot.process <- function(prc) {
