@@ -58,3 +58,5 @@
 # set.seed(1)
 # b <- simulate_process()
 # system.time(a <- simulate_process(max_jumps_number = 100000))
+
+

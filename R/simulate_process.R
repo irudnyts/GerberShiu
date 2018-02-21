@@ -93,12 +93,15 @@ simulate_process <- function(u = 10,
 
     # function for adding negative jump to a path
     add_jump_n <- function() {
+
         jump_value <- ifelse(test = rbinom(n = 1, size = 1, prob = eps) == 1,
                              yes = do.call(f_n2, param_n2),
                              no = do.call(f_n1, param_n1))
         jumps_n <<-  c(jumps_n, jump_value)
 
-        jump_time <- last(time_n)
+        jump_time <- current_time_n
+        time_n <<- c(time_n, current_time_n)
+
         time_to_jump <- jump_time - path[nrow(path), 1]
 
         path <<- rbind(
@@ -118,9 +121,13 @@ simulate_process <- function(u = 10,
 
     # function for adding positive jump to a path
     add_jump_p <- function(jump_time, jump_value) {
+
         jump_value <- do.call(f_p, param_p)
         jumps_p <<-  c(jumps_p, jump_value)
-        jump_time <- last(time_p)
+
+        jump_time <- current_time_p
+        time_p <<- c(time_p, current_time_p)
+
         time_to_jump <- jump_time - path[nrow(path), 1]
         path <<- rbind(
             path,
@@ -141,7 +148,7 @@ simulate_process <- function(u = 10,
     is_ruined <- function() path[nrow(path), 2] < 0
 
     # get last element of a vector
-    last <- function(x) x[length(x)]
+    last <- function(x) ifelse(length(x) > 0, yes = x[length(x)], no = 0)
 
     jumps_n <- numeric() # negative jumps' sizes
     jumps_p <- numeric() # positive jumps' sizes
@@ -149,14 +156,14 @@ simulate_process <- function(u = 10,
     time_n <- numeric() # time of negative jumps
     time_p <- numeric() # time of positive jumps
 
-    time_n[1] <- rexp(1, lambda_n)
-    time_p[1] <- rexp(1, lambda_p)
+    current_time_n <- rexp(1, lambda_n)
+    current_time_p <- rexp(1, lambda_p)
 
     # browser()
 
     repeat{
 
-        if(last(time_p) > last(time_n)) {
+        if(current_time_p > current_time_n) {
 
             add_jump_n()
 
@@ -165,8 +172,8 @@ simulate_process <- function(u = 10,
 
             repeat {
 
-                time_n <- c(time_n, last(time_n) + rexp(1, lambda_n))
-                if(last(time_p) < last(time_n)) break
+                current_time_n <- last(time_n) + rexp(1, lambda_n)
+                if(current_time_p < current_time_n) break
 
                 add_jump_n()
 
@@ -185,8 +192,8 @@ simulate_process <- function(u = 10,
             if(jumps_number >= max_jumps_number) break
 
             repeat {
-                time_p <-  c(time_p, last(time_p) + rexp(1, lambda_p))
-                if(last(time_p) > last(time_n)) break
+                current_time_p <- last(time_p) + rexp(1, lambda_p)
+                if(current_time_p > current_time_n) break
                 add_jump_p()
                 if(jumps_number >= max_jumps_number) break
             }
