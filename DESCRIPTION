@@ -15,7 +15,7 @@ Depends:
     R (>= 3.4.3)
 Imports:
     actuar(>= 2.3.0),
-    pbapply(>=1.3-4)
+    pbapply(>= 1.3.4)
 Encoding: UTF-8
 Suggests: testthat
 RoxygenNote: 6.0.1
