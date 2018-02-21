@@ -78,7 +78,10 @@ ruin or when maximum number of jumps is attained.
 
 The function should be used with a great care when \code{max_jumps_number} is
 set to \code{Inf}. In this case a simulating \code{repeat} loop will be
-stopped only by ruin. This can cause an infinite loop.
+stopped only by ruin. This can cause an infinite loop. The model is as
+follows:
+\deqn{X_{\epsilon}(t) = u + ct + \sum_{k=1}^{N^{(+)}(t)} U^{(+)}_k -
+\sum_{k=1}^{N^{(-)}(t)} U^{(-)}_k}
 }
 
 \examples{

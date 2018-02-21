@@ -14,7 +14,10 @@
 #' @section Warning:
 #' The function should be used with a great care when \code{max_jumps_number} is
 #' set to \code{Inf}. In this case a simulating \code{repeat} loop will be
-#' stopped only by ruin. This can cause an infinite loop.
+#' stopped only by ruin. This can cause an infinite loop. The model is as
+#' follows:
+#' \deqn{X_{\epsilon}(t) = u + ct + \sum_{k=1}^{N^{(+)}(t)} U^{(+)}_k -
+#' \sum_{k=1}^{N^{(-)}(t)} U^{(-)}_k}
 #'
 #' @param u a numeric vector of length one specifying an initial capital
 #' (\eqn{u} in the formula representation). Default value is 10.
@@ -158,7 +161,7 @@ simulate_process <- function(u = 10,
             add_jump_n()
 
             if(get_path_last_value() < 0) break
-            if(jumps_number > max_jumps_number) break
+            if(jumps_number >= max_jumps_number) break
 
             repeat {
 
@@ -168,28 +171,27 @@ simulate_process <- function(u = 10,
                 add_jump_n()
 
                 if(get_path_last_value() < 0) break
-
-                if(jumps_number > max_jumps_number) break
+                if(jumps_number >= max_jumps_number) break
             }
 
             if(get_path_last_value() < 0) break
-            if(jumps_number > max_jumps_number) break
+            if(jumps_number >= max_jumps_number) break
 
 
         } else {
 
             add_jump_p()
 
-            if(jumps_number > max_jumps_number) break
+            if(jumps_number >= max_jumps_number) break
 
             repeat {
                 time_p <-  c(time_p, last(time_p) + rexp(1, lambda_p))
                 if(last(time_p) > last(time_n)) break
                 add_jump_p()
-                if(jumps_number > max_jumps_number) break
+                if(jumps_number >= max_jumps_number) break
             }
 
-            if(jumps_number > max_jumps_number) break
+            if(jumps_number >= max_jumps_number) break
 
         }
     }
@@ -210,17 +212,6 @@ simulate_process <- function(u = 10,
 
     return(rval)
 }
-
-
-# process <- function(process, positive_jumps_time, positive_jumps_sizes,
-#                     negative_jumps_time, negative_jumps_sizes) {
-#     rval <- list(process = process,
-#                  positive_jumps_time = positive_jumps_time,
-#                  positive_jumps_sizes = positive_jumps_sizes,
-#                  negative_jumps_time = negative_jumps_time,
-#                  negative_jumps_sizes = negative_jumps_sizes)
-#     class(rval) <- "process"
-# }
 
 get_time_to_ruin <- function(prc) {
     # check is stoped due to ruin and not to max_iter is achieved
