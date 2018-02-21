@@ -138,7 +138,7 @@ simulate_process <- function(u = 10,
     }
 
     # get last value of a path
-    get_path_last_value <- function() path[nrow(path), 2]
+    is_ruined <- function() path[nrow(path), 2] < 0
 
     # get last element of a vector
     last <- function(x) x[length(x)]
@@ -160,7 +160,7 @@ simulate_process <- function(u = 10,
 
             add_jump_n()
 
-            if(get_path_last_value() < 0) break
+            if(is_ruined()) break
             if(jumps_number >= max_jumps_number) break
 
             repeat {
@@ -170,11 +170,11 @@ simulate_process <- function(u = 10,
 
                 add_jump_n()
 
-                if(get_path_last_value() < 0) break
+                if(is_ruined()) break
                 if(jumps_number >= max_jumps_number) break
             }
 
-            if(get_path_last_value() < 0) break
+            if(is_ruined()) break
             if(jumps_number >= max_jumps_number) break
 
 
@@ -196,7 +196,7 @@ simulate_process <- function(u = 10,
         }
     }
 
-    if(jumps_number > max_jumps_number)
+    if(jumps_number >= max_jumps_number)
         warning("max_jumps_number is achieved")
 
     rval <- list(
@@ -205,7 +205,19 @@ simulate_process <- function(u = 10,
         time_p = time_p,
         jumps_n = jumps_n,
         time_n = time_n,
-        jumps_number = jumps_number
+        jumps_number = jumps_number,
+        is_ruined = is_ruined(),
+        is_max_jumps_number_attained = jumps_number >= max_jumps_number,
+        time_to_ruin = ifelse(is_ruined(),
+                              yes = path[nrow(path), 1],
+                              no = NA),
+        deficit_at_ruin = ifelse(is_ruined(),
+                                 yes = -path[nrow(path), 2],
+                                 no = NA),
+        surplus_prior_to_ruin = ifelse(is_ruined(),
+                                       yes = path[nrow(path) - 1, 2],
+                                       no = NA)
+
     )
 
     class(rval) <- "process"
@@ -213,20 +225,6 @@ simulate_process <- function(u = 10,
     return(rval)
 }
 
-get_time_to_ruin <- function(prc) {
-    # check is stoped due to ruin and not to max_iter is achieved
-    prc$path[nrow(prc$path), 1]
-}
-
-get_deficit_at_ruin <- function(prc) {
-    # check is stoped due to ruin and not to max_iter is achieved
-    -prc$path[nrow(prc$path), 2]
-}
-
-get_surplus_prior_to_ruin <- function(prc) {
-    # check is stoped due to ruin and not to max_iter is achieved
-    prc$path[nrow(prc$path) - 1, 2]
-}
 
 #' @export
 plot.process <- function(prc) {
