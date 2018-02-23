@@ -14,7 +14,7 @@ gerber_shiu <- function(q = 1,
                                       simplify = FALSE)
 
     gs_values <- sapply(processes, gs)
-    mean(gs_values)
+    mean(gs_values) #, na.rm = TRUE)
 
     # simulate 100000 process and add to a list
     # estimate for these processes a value of Gerber Shiu function
