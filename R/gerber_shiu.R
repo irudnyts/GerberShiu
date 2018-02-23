@@ -5,8 +5,8 @@ gerber_shiu <- function(q = 1,
                         ...) {
     # browser()
     gs <- function(prc) {
-        exp(-q * get_time_to_ruin(prc)) *
-            w(get_deficit_at_ruin(prc), get_surplus_prior_to_ruin(prc))
+        exp(-q * prc$time_to_ruin *
+            w(prc$deficit_at_ruin, prc$surplus_prior_to_ruin))
     }
 
     processes <- pbapply::pbreplicate(n = simulation_number,
