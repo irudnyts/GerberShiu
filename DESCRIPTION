@@ -1,12 +1,14 @@
 Package: GerberShiu
 Type: Package
-Title: Simulates a Levy process and estimates the value of Gerber-Shiu function
+Title: Gerber-Shiu Function for Extended Cramer-Lundberg model
 Version: 0.1.0
 Date: 2018-02-16
 Authors@R:
     person("Iegor", "Rudnytskyi", , "iegor.rudnytskyi@gmail.com", c("aut", "cre"))
-Description: Simulates a Levy process and estimates the value of Gerber-Shiu
-    function by using Monte-Carlo method. 
+Description: A set of functions for computing Gerber-Shui function and a ruin
+    probability via Monte-Carlo method. This package allows for estimating these
+    risk measures for classical Cramer-Lundberg (a compound-Poisson risk model),
+    as well as for its extenssion that includes capital injections.
 License: GPL-3
 LazyData: TRUE
 URL: http://github.com/irudnyts/GerberShiu

@@ -75,7 +75,9 @@ simulate_process <- function(u = 10,
                              f_n2 = actuar::rpareto1,
                              param_n2 = list(shape = 3 / 2, min = 2 / 3),
                              eps = 0.1,
-                             max_jumps_number = 10000) {
+                             max_jumps_number = 10000,
+                             max_time_elapsed = 60,
+                             max_time_span = 7500) {
 
     # add n = 1 to all distributions parameters in order to generate only
     # one r.v.
