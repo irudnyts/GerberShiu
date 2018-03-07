@@ -1,5 +1,6 @@
 # max_jumps_number can be Inf
 # set seed
+# premium rate should be positive
 
 #' Simulate a path of Cramer–Lundberg model extenssion with capital injections
 #'
@@ -76,8 +77,11 @@ simulate_process <- function(u = 10,
                              param_n2 = list(shape = 3 / 2, min = 2 / 3),
                              eps = 0.1,
                              max_jumps_number = 10000,
-                             max_time_elapsed = 60,
                              max_time_span = 7500) {
+
+
+    # utility function: get last element of a vector
+    last <- function(x) ifelse(length(x) > 0, yes = x[length(x)], no = 0)
 
     # add n = 1 to all distributions parameters in order to generate only
     # one r.v.
@@ -146,11 +150,14 @@ simulate_process <- function(u = 10,
         jumps_number <<- jumps_number + 1
     }
 
-    # get last value of a path
+    # check whether the path is ruined or not
     is_ruined <- function() path[nrow(path), 2] < 0
 
-    # get last element of a vector
-    last <- function(x) ifelse(length(x) > 0, yes = x[length(x)], no = 0)
+    # check whether the maximum number of jumps attained or not
+    is_max_jumps_number_attained <- function() jumps_number >= max_jumps_number
+
+    # check whether the path is reached maximum time span
+    is_max_time_span_attained <- function() path[nrow(path), 1] >= max_time_span
 
     jumps_n <- numeric() # negative jumps' sizes
     jumps_p <- numeric() # positive jumps' sizes
@@ -170,7 +177,8 @@ simulate_process <- function(u = 10,
             add_jump_n()
 
             if(is_ruined()) break
-            if(jumps_number >= max_jumps_number) break
+            if(is_max_jumps_number_attained()) break
+            if(is_max_time_span_attained()) break
 
             repeat {
 
@@ -180,27 +188,34 @@ simulate_process <- function(u = 10,
                 add_jump_n()
 
                 if(is_ruined()) break
-                if(jumps_number >= max_jumps_number) break
+                if(is_max_jumps_number_attained()) break
+                if(is_max_time_span_attained()) break
             }
 
             if(is_ruined()) break
-            if(jumps_number >= max_jumps_number) break
+            if(is_max_jumps_number_attained()) break
+            if(is_max_time_span_attained()) break
 
 
         } else {
 
             add_jump_p()
 
-            if(jumps_number >= max_jumps_number) break
+            if(is_max_jumps_number_attained()) break
+            if(is_max_time_span_attained()) break
 
             repeat {
                 current_time_p <- last(time_p) + rexp(1, lambda_p)
                 if(current_time_p > current_time_n) break
+
                 add_jump_p()
-                if(jumps_number >= max_jumps_number) break
+
+                if(is_max_jumps_number_attained()) break
+                if(is_max_time_span_attained()) break
             }
 
-            if(jumps_number >= max_jumps_number) break
+            if(is_max_jumps_number_attained()) break
+            if(is_max_time_span_attained()) break
 
         }
     }
@@ -216,17 +231,21 @@ simulate_process <- function(u = 10,
         time_n = time_n,
         jumps_number = jumps_number,
         is_ruined = is_ruined(),
-        is_max_jumps_number_attained = jumps_number >= max_jumps_number,
-        time_to_ruin = ifelse(is_ruined(),
-                              yes = path[nrow(path), 1],
-                              no = NA),
-        deficit_at_ruin = ifelse(is_ruined(),
-                                 yes = -path[nrow(path), 2],
-                                 no = NA),
-        surplus_prior_to_ruin = ifelse(is_ruined(),
-                                       yes = path[nrow(path) - 1, 2],
-                                       no = NA)
-
+        is_max_jumps_number_attained = is_max_jumps_number_attained(),
+        is_max_time_span_attained = is_max_time_span_attained(),
+        u = u,
+        pr = pr,
+        lambda_p = lambda_p,
+        f_p = f_p,
+        param_p = param_p,
+        lambda_n = lambda_n,
+        f_n1 = f_n1,
+        param_n1 = param_n1,
+        f_n2 = f_n2,
+        param_n2 = param_n2,
+        eps = eps,
+        max_jumps_number = max_jumps_number,
+        max_time_span = max_time_span
     )
 
     class(rval) <- "process"
