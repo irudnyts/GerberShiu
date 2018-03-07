@@ -1,6 +1,5 @@
 # ruin_probability(t = 10,
-#                  simulation_number = 500000,
-#                  seed = 31,
+#                  simulation_number = 5000,
 #                  u = 0,
 #                  pr = 0,
 #                  lambda_p = 1,

@@ -1,10 +1,10 @@
 #' @export
 ruin_probability <- function(t,
                              simulation_number = 1000,
-                             seed = 1,
+                             seed = NULL,
                              ...) {
 
-    set.seed(seed)
+    if(!is.null(seed)) set.seed(seed)
 
     process_params <- list(...)
 

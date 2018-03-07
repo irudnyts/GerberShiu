@@ -2,7 +2,7 @@
 gerber_shiu <- function(q = 1,
                         w = function(x, y) x + y,
                         simulation_number = 1000,
-                        seed = 1,
+                        seed = NULL,
                         ...) {
     # browser()
     gs <- function(prc) {
@@ -10,7 +10,7 @@ gerber_shiu <- function(q = 1,
             w(prc$deficit_at_ruin, prc$surplus_prior_to_ruin))
     }
 
-    set.seed(seed)
+    if(!is.null(seed)) set.seed(seed)
 
     processes <- pbapply::pbreplicate(n = simulation_number,
                                       expr = simulate_process(...),
