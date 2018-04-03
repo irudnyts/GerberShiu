@@ -174,51 +174,76 @@ simulate_process <- function(u = 10,
 
         if(current_time_p > current_time_n) {
 
+            if(current_time_n > max_time_span) break #
+
             add_jump_n()
 
             if(is_ruined()) break
             if(is_max_jumps_number_attained()) break
-            if(is_max_time_span_attained()) break
+            # if(is_max_time_span_attained()) break
 
             repeat {
 
                 current_time_n <- last(time_n) + rexp(1, lambda_n)
                 if(current_time_p < current_time_n) break
 
+                if(current_time_n > max_time_span) break #
+
                 add_jump_n()
 
                 if(is_ruined()) break
                 if(is_max_jumps_number_attained()) break
-                if(is_max_time_span_attained()) break
+                # if(is_max_time_span_attained()) break
             }
+
+            if(current_time_n > max_time_span) break #
 
             if(is_ruined()) break
             if(is_max_jumps_number_attained()) break
-            if(is_max_time_span_attained()) break
+            # if(is_max_time_span_attained()) break
 
 
         } else {
 
+            if(current_time_p > max_time_span) break #
+
             add_jump_p()
 
             if(is_max_jumps_number_attained()) break
-            if(is_max_time_span_attained()) break
+            # if(is_max_time_span_attained()) break
 
             repeat {
                 current_time_p <- last(time_p) + rexp(1, lambda_p)
                 if(current_time_p > current_time_n) break
 
+                if(current_time_p > max_time_span) break #
+
                 add_jump_p()
 
                 if(is_max_jumps_number_attained()) break
-                if(is_max_time_span_attained()) break
+                # if(is_max_time_span_attained()) break
             }
 
+            if(current_time_p > max_time_span) break #
+
             if(is_max_jumps_number_attained()) break
-            if(is_max_time_span_attained()) break
+            # if(is_max_time_span_attained()) break
 
         }
     }
+
+    # indices <- path[, 1] <= t
+    # path <- path[indices, ]
+    # path <- rbind(path,
+    #               c(t, path[nrow(path), 2]))
+    if(!is_ruined())
+    path <- rbind(
+        path,
+        c(max_time_span,
+          path[nrow(path), 2] + (max_time_span - path[nrow(path), 1]) * pr)
+    )
+
+
 
     if(jumps_number >= max_jumps_number)
         warning("max_jumps_number is achieved")
