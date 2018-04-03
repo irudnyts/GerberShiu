@@ -71,6 +71,7 @@ elements:
     jumps.
 \item number_jumps: the number of jumps.
 \item time: the final time of the process.
+\item is_ruined: is the prorcess ruined?
 \item seed: the value of .Random.seed before simulation.
 \item u: an initial capital.
 \item pc: a premium rate.
