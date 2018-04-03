@@ -81,6 +81,7 @@
 #'     jumps.
 #' \item number_jumps: the number of jumps.
 #' \item time: the final time of the process.
+#' \item is_ruined: is the prorcess ruined?
 #' \item seed: the value of .Random.seed before simulation.
 #' \item u: an initial capital.
 #' \item pc: a premium rate.
@@ -158,6 +159,8 @@ simulate_process <- function(u = 10,
 
     nj <- 0 # number of jumps
 
+    is_ruined <- FALSE
+
     repeat{
 
         if((ca_pos < max_time | ca_neg < max_time) & nj < max_jumps_number) {
@@ -176,7 +179,10 @@ simulate_process <- function(u = 10,
 
                 nj <- nj + 1
 
-                if(path[nrow(path), 2] < 0) break
+                if(path[nrow(path), 2] < 0) {
+                    is_ruined <- TRUE
+                    break
+                }
 
                 ca_neg <- ca_neg + rexp(1, lambda_n)
 
@@ -199,7 +205,10 @@ simulate_process <- function(u = 10,
 
                 nj <- nj + 1
 
-                if(path[nrow(path), 2] < 0) break
+                if(path[nrow(path), 2] < 0) {
+                    is_ruined <- TRUE
+                    break
+                }
 
                 ca_pos <- ca_pos + rexp(1, lambda_p)
                 ca_neg <- ca_neg + rexp(1, lambda_n)
@@ -245,6 +254,7 @@ simulate_process <- function(u = 10,
         negative_arrival_times = a_neg,
         number_jumps = nj,
         time = path[nrow(path), 1],
+        is_ruined = is_ruined,
         seed = seed,
         u = u,
         pr = pr,
