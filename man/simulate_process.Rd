@@ -62,15 +62,15 @@ elements:
 \itemize{
 \item path: a matrix of two columns. The first column is the time, the second
     is the value of a process.
-\item positive_jump_size: a vector of positive (capital injections) jumps'
+\item positive_jump_sizes: a vector of positive (capital injections) jumps'
     values.
-\item negative_jump_size: a vector of negative (claims) jumps' values.
-\item positive_arrival_time: a vector indicating arrival times of positive
+\item negative_jump_sizes: a vector of negative (claims) jumps' values.
+\item positive_arrival_times: a vector indicating arrival times of positive
     jumps.
-\item negative_arrival_time: a vector indicating arrival times of negative
+\item negative_arrival_times: a vector indicating arrival times of negative
     jumps.
-\item jumps_number: the number of jumps.
-\item time_horizon: the final time of the process.
+\item number_jumps: the number of jumps.
+\item time: the final time of the process.
 \item seed: the value of .Random.seed before simulation.
 \item u: an initial capital.
 \item pc: a premium rate.
