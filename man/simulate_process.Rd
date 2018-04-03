@@ -2,13 +2,14 @@
 % Please edit documentation in R/simulate_process.R
 \name{simulate_process}
 \alias{simulate_process}
-\title{Simulate a path of Cramer–Lundberg model extenssion with capital injections}
+\title{Simulate a path of Cramer–Lundberg model extenssion with capital
+injections.}
 \usage{
 simulate_process(u = 10, pr = 1, lambda_p = 1, f_p = rexp,
   param_p = list(rate = 1), lambda_n = 1, f_n1 = rexp,
-  param_n1 = list(rate = 1/2), f_n2 = actuar::rpareto1,
-  param_n2 = list(shape = 3/2, min = 2/3), eps = 0.1,
-  max_jumps_number = 10000)
+  param_n1 = list(rate = 1), f_n2 = actuar::rpareto1,
+  param_n2 = list(shape = 3/2, min = 2/3), eps = 0,
+  max_jumps_number = Inf, max_time = 10)
 }
 \arguments{
 \item{u}{a numeric vector of length one specifying an initial capital
@@ -20,7 +21,7 @@ in the formula representation). Defaulr value is 1.}
 \item{lambda_p}{a numeric vector of length one specifying the rate of a
 Poisson process of capital injections. Default value is 1.}
 
-\item{f_p}{a function specifying a random generator for a distribution of
+\item{f_p}{a function specifying a random generator of a distribution of
 capital injections. Default value is \code{rexp} (an exponential
 distribution).}
 
@@ -35,57 +36,85 @@ distribution of claims. Default value is \code{rexp} (an exponential
 distribution).}
 
 \item{param_n1}{a list of parameters of claims' distribution passed to f_n1.
-The default value is \code{list(rate = 1 / 2)}.}
+The default value is \code{list(rate = 1)}.}
 
 \item{f_n2}{a function specifying a random generator for a heavy-tailed
 distribution of claims. Default value is \code{actuar::rpareto1} (a Pareto
 Type I distribution, from \code{actuar} package).}
 
+\item{param_n2}{a list of parameters of claims' distribution passed to f_n2.
+The default value is \code{list(shape = 3 / 2, min = 2 / 3)}.}
+
 \item{eps}{a numeric vector of length one specifying the mixing parameter for
-claims' mixed distribution.}
+claims' mixed distribution. Default value is \code{0}.}
 
 \item{max_jumps_number}{a numeric vector of length one specifying the maximum
-number of positive and negative jumps, after which the function stops.
-Default value is 10000. Can be set to \code{Inf}.}
+number of positive and negative jumps, after which the loop stops.
+Default value is \code{Inf}, i.e. infinite number of loops. See details.}
 
-\item{param_n1}{a list of parameters of claims' distribution passed to f_n2.
-The default value is \code{list(shape = 3 / 2, min = 2 / 3)}.}
+\item{max_time}{a numeric vector of length one specifying the time horizon
+until whith the process will be simulated. Default valie is 10. Can be set to
+\code{Inf}. See details.}
 }
 \value{
 An object of class \code{process} which is represented by a list of
 elements:
 \itemize{
 \item path: a matrix of two columns. The first column is the time, the second
-is the value of a process.
-\item jumps_p a vector of positive (capital injections) jumps' values.
-\item time_p a vector indicating times of positive jumps.
-\item jumps_n a vector of negative (claims) jumps' values.
-\item time_p a vector indicating times of negative jumps.
-\item jumps_number a vector indicating the number of all jumps.
+    is the value of a process.
+\item positive_jump_size: a vector of positive (capital injections) jumps'
+    values.
+\item negative_jump_size: a vector of negative (claims) jumps' values.
+\item positive_arrival_time: a vector indicating arrival times of positive
+    jumps.
+\item negative_arrival_time: a vector indicating arrival times of negative
+    jumps.
+\item jumps_number: the number of jumps.
+\item time_horizon: the final time of the process.
+\item seed: the value of .Random.seed before simulation.
+\item u: an initial capital.
+\item pc: a premium rate.
+\item lambda_p: the rate of a Poisson process of capital injections.
+\item f_p: a random generator of a distribution of capital injections.
+\item param_p: a list of parameters of capital injections' distribution
+    passed to f_p.
+\item lambda_n: the rate of a Poisson process of claims.
+\item f_n1: a random generator for a phase-type distribution of claims.
+\item param_n1: a list of parameters of claims' distribution passed to f_n1.
+\item f_n2: a random generator for a heavy-tailed distribution of claims.
+\item param_n2: a list of parameters of claims' distribution passed to f_n2.
+\item eps: the mixing parameter for claims' mixed distribution.
+\item max_jumps_number: the maximum number of positive and negative jumps.
+\item max_time: the maximum of the time horizon.
 }
 }
 \description{
-\code{simulate_process} returns an object of S3 \code{process} class, which
-is simulated stochastic process of Cramer–Lundberg model extenssion with
-capital injections (i.e. positive jumps).
+\code{simulate_process} returns an object of S3 \code{process}
+class, which is a simulated stochastic process of Cramer–Lundberg model
+extenssion with capital injections (i.e. positive jumps).
 }
 \details{
-This function simulates a stochastic process, which follows Cramer–Lundberg
-model extenssion with capital injections (i.e. positive jumps) until either
-ruin or when maximum number of jumps is attained.
+This function simulates a stochastic process, which follows
+Cramer–Lundberg model extenssion with capital injections (i.e. positive
+jumps). The model of the process to be simulated is as follows:
+\deqn{X_{\epsilon}(t) = u + ct + \sum_{k=1}^{N^{(+)}(t)} U^{(+)}_k -
+\sum_{k=1}^{N^{(-)}(t)} U^{(-)}_k}
+The stopping time of the algorithm is (1) when ruin is occured,
+(2) the time horizon (\code{max_time}) is attained, (3) the maximum number of
+jumps (\code{max_jumps_number}) is achieved. Values of (\code{max_time}) and
+(\code{max_jumps_number}) can be set to \code{Inf} allowing the process to be
+simulated until ruin.
 }
 \section{Warning}{
 
-The function should be used with a great care when \code{max_jumps_number} is
-set to \code{Inf}. In this case a simulating \code{repeat} loop will be
-stopped only by ruin. This can cause an infinite loop. The model is as
-follows:
-\deqn{X_{\epsilon}(t) = u + ct + \sum_{k=1}^{N^{(+)}(t)} U^{(+)}_k -
-\sum_{k=1}^{N^{(-)}(t)} U^{(-)}_k}
+The function should be used with a great care when both
+\code{max_jumps_number} and \code{max_time} are set to \code{Inf}. In this
+case a simulating \code{repeat} loop will be stopped only by ruin. This can
+cause an infinite loop.
 }
-
 \examples{
 \dontrun{
 prc <- simulate_process()
 }
 }
+

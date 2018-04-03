@@ -1,3 +1,9 @@
+#' @export
+plot.process <- function(prc) {
+    plot(prc$path, type = "l")
+
+}
+
 get_time_to_ruin <- function(prc) {
     ifelse(prc$is_ruined,
            yes = prc$path[nrow(prc$path), 1],
