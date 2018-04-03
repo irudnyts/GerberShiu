@@ -72,15 +72,15 @@
 #' \itemize{
 #' \item path: a matrix of two columns. The first column is the time, the second
 #'     is the value of a process.
-#' \item positive_jump_size: a vector of positive (capital injections) jumps'
+#' \item positive_jump_sizes: a vector of positive (capital injections) jumps'
 #'     values.
-#' \item negative_jump_size: a vector of negative (claims) jumps' values.
-#' \item positive_arrival_time: a vector indicating arrival times of positive
+#' \item negative_jump_sizes: a vector of negative (claims) jumps' values.
+#' \item positive_arrival_times: a vector indicating arrival times of positive
 #'     jumps.
-#' \item negative_arrival_time: a vector indicating arrival times of negative
+#' \item negative_arrival_times: a vector indicating arrival times of negative
 #'     jumps.
-#' \item jumps_number: the number of jumps.
-#' \item time_horizon: the final time of the process.
+#' \item number_jumps: the number of jumps.
+#' \item time: the final time of the process.
 #' \item seed: the value of .Random.seed before simulation.
 #' \item u: an initial capital.
 #' \item pc: a premium rate.
@@ -156,10 +156,11 @@ simulate_process <- function(u = 10,
     ca_pos <- rexp(1, lambda_p) # current arrival time of a positive jump
     ca_neg <- rexp(1, lambda_n) # current arrival time of a negative jump
 
+    nj <- 0 # number of jumps
+
     repeat{
 
-        if(ca_pos < max_time |
-           ca_neg < max_time) {
+        if((ca_pos < max_time | ca_neg < max_time) & nj < max_jumps_number) {
 
             if(ca_pos > ca_neg) {
 
@@ -172,6 +173,8 @@ simulate_process <- function(u = 10,
 
                 s_neg <- c(s_neg, cs_neg)
                 a_neg <- c(a_neg, ca_neg)
+
+                nj <- nj + 1
 
                 if(path[nrow(path), 2] < 0) break
 
@@ -194,6 +197,8 @@ simulate_process <- function(u = 10,
                 a_pos <- c(a_pos, ca_pos)
                 a_neg <- c(a_neg, ca_neg)
 
+                nj <- nj + 1
+
                 if(path[nrow(path), 2] < 0) break
 
                 ca_pos <- ca_pos + rexp(1, lambda_p)
@@ -204,8 +209,11 @@ simulate_process <- function(u = 10,
                 cs_pos <- do.call(f_p, param_p) # current positive jump's size
 
                 path <- add_jump_to_path(path, ca_pos, cs_pos)
+
                 s_pos <- c(s_pos, cs_pos)
                 a_pos <- c(a_pos, ca_pos)
+
+                nj <- nj + 1
 
                 ca_pos <- ca_pos + rexp(1, lambda_p)
 
@@ -231,12 +239,12 @@ simulate_process <- function(u = 10,
     # generate a returning value
     rval <- list(
         path = path,
-        positive_jump_size = s_pos,
-        negative_jump_size = s_neg,
-        positive_arrival_time = a_pos,
-        negative_arrival_time = a_neg,
-        jumps_number = jumps_number,
-        time_horizon = time_horizon,
+        positive_jump_sizes = s_pos,
+        negative_jump_sizes = s_neg,
+        positive_arrival_times = a_pos,
+        negative_arrival_times = a_neg,
+        number_jumps = nj,
+        time = path[nrow(path), 1],
         seed = seed,
         u = u,
         pr = pr,
@@ -250,7 +258,7 @@ simulate_process <- function(u = 10,
         param_n2 = param_n2,
         eps = eps,
         max_jumps_number = max_jumps_number,
-        max_time_span = max_time_span
+        max_time = max_time
     )
 
     class(rval) <- "process"
